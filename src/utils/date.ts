@@ -17,3 +17,19 @@ export function formatDisplayDate(date: Date): string {
     year: "numeric",
   });
 }
+
+export function formatDateLabelShort(dateKey: string): string {
+  const parts = dateKey.split("-");
+  if (parts.length !== 3) return dateKey;
+
+  const [year, month, day] = parts.map((p) => Number(p));
+  const jsDate = new Date(year, month - 1, day);
+
+  if (Number.isNaN(jsDate.getTime())) return dateKey;
+
+  return jsDate.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}

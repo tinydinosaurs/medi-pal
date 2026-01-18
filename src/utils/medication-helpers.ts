@@ -1,6 +1,12 @@
 // Medication display helpers
 
-import { Medication, Priority, FontSize } from "@/types";
+import {
+  Medication,
+  Priority,
+  FontSize,
+  DoseRecord,
+  GroupedHistory,
+} from "@/types";
 
 // Re-export for convenience
 export type { FontSize };
@@ -17,7 +23,9 @@ export interface PriorityStyles {
 /**
  * Get Tailwind classes for priority badge
  */
-export function getPriorityStyles(priority: Priority | undefined): PriorityStyles {
+export function getPriorityStyles(
+  priority: Priority | undefined
+): PriorityStyles {
   switch (priority) {
     case "critical":
       return {
@@ -99,4 +107,26 @@ export function getDoseClass(fontSize: FontSize): string {
     default:
       return "text-lg";
   }
+}
+
+// ============================================
+// Dose History
+// ============================================
+
+/**
+ * Group dose records by date, sorted descending (most recent first)
+ */
+export function groupDosesByDate(doseLog: DoseRecord[]): GroupedHistory {
+  const map = new Map<string, DoseRecord[]>();
+
+  doseLog.forEach((entry) => {
+    const { date } = entry;
+    if (!date) return;
+    if (!map.has(date)) {
+      map.set(date, []);
+    }
+    map.get(date)!.push(entry);
+  });
+
+  return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
 }

@@ -3,7 +3,11 @@
 // ============================================
 
 export type Priority = "critical" | "important" | "routine";
-export type Frequency = "daily" | "every-other-day" | "specific-days" | "custom";
+export type Frequency =
+  | "daily"
+  | "every-other-day"
+  | "specific-days"
+  | "custom";
 export type FontSize = "normal" | "large" | "extra";
 
 export interface Medication {
@@ -34,6 +38,8 @@ export interface ScheduleEntry {
   med: Medication;
   scheduledTime: string;
 }
+
+export type GroupedHistory = [string, DoseRecord[]][];
 
 // ============================================
 // Appointments
