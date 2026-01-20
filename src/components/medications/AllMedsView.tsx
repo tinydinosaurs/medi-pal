@@ -40,7 +40,7 @@ export default function AllMedsView({
   medications,
   onEdit,
   onDelete,
-  caregiverMode = false,
+  // caregiverMode = false,
   fontSize = "normal",
 }: AllMedsViewProps) {
   if (!medications.length) {
@@ -55,7 +55,7 @@ export default function AllMedsView({
           med={med}
           onEdit={onEdit}
           onDelete={onDelete}
-          caregiverMode={caregiverMode}
+          // caregiverMode={caregiverMode}
           fontSize={fontSize}
         />
       ))}
