@@ -9,6 +9,7 @@ import { getDateKey } from "@/utils/date";
 import { Medication, ScheduleEntry } from "@/types";
 import { formatClockTime } from "@/utils/timeWindows";
 import { MOCK_APPOINTMENTS, MOCK_DOCUMENTS } from "@/data/mocks";
+import { ProgressRing } from "@/components/medications";
 
 // ============================================
 // Mock Data (placeholder for other sections)
@@ -39,8 +40,8 @@ function WelcomeCard() {
     today.getHours() < 12
       ? "Good Morning"
       : today.getHours() < 17
-      ? "Good Afternoon"
-      : "Good Evening";
+        ? "Good Afternoon"
+        : "Good Evening";
   const dateStr = today.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -87,9 +88,7 @@ function TodaysMedsCard({
             Today&apos;s Medications
           </h3>
         </div>
-        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
-          {takenCount}/{totalCount} taken
-        </span>
+<ProgressRing taken={takenCount} total={totalCount} size="sm" />
       </div>
 
       <div className="divide-y divide-slate-50">
@@ -335,7 +334,7 @@ export default function HomePage() {
   }, [medications, today]);
 
   const takenCount = schedule.filter((entry) =>
-    isDoseTaken(entry.med.id, entry.scheduledTime, todayKey)
+    isDoseTaken(entry.med.id, entry.scheduledTime, todayKey),
   ).length;
   const totalCount = schedule.length;
 
@@ -343,19 +342,19 @@ export default function HomePage() {
     (med: Medication, time: string) => {
       recordDose(med.id, time);
     },
-    [recordDose]
+    [recordDose],
   );
 
   const handleUndo = useCallback(
     (med: Medication, time: string) => {
       undoDose(med.id, time, todayKey);
     },
-    [undoDose, todayKey]
+    [undoDose, todayKey],
   );
 
   const checkIsTaken = useCallback(
     (medId: number, time: string) => isDoseTaken(medId, time, todayKey),
-    [isDoseTaken, todayKey]
+    [isDoseTaken, todayKey],
   );
 
   return (

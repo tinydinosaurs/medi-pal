@@ -1,28 +1,35 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMedications } from "@/hooks/useMedications";
 import AllMedsView from "@/components/medications/AllMedsView";
 import MedForm from "@/components/medications/MedForm";
 import { Medication } from "@/types";
 
-export default function MedicationsContent() {
+interface MedicationsContentProps {
+  /** External trigger to show the add form */
+  showFormExternal?: boolean;
+  /** Callback when form is closed */
+  onFormClose?: () => void;
+}
+
+export default function MedicationsContent({
+  showFormExternal = false,
+  onFormClose,
+}: MedicationsContentProps) {
   const { medications, addMedication, updateMedication, deleteMedication } =
     useMedications();
 
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const handleAddClick = useCallback(() => {
-    setEditingMed(null);
-    setShowForm(true);
-  }, []);
-
-  const handleSearchClick = useCallback(() => {
-    alert(
-      "🔍 Medication Search\n\nThis feature will allow you to search a database of medications to quickly add common prescriptions with pre-filled information.\n\nComing soon!"
-    );
-  }, []);
+  // Sync with external form trigger
+  useEffect(() => {
+    if (showFormExternal) {
+      setEditingMed(null);
+      setShowForm(true);
+    }
+  }, [showFormExternal]);
 
   const handleEdit = useCallback((med: Medication) => {
     setEditingMed(med);
@@ -35,7 +42,7 @@ export default function MedicationsContent() {
         deleteMedication(med.id);
       }
     },
-    [deleteMedication]
+    [deleteMedication],
   );
 
   const handleFormSave = useCallback(
@@ -47,34 +54,21 @@ export default function MedicationsContent() {
       }
       setShowForm(false);
       setEditingMed(null);
+      onFormClose?.();
     },
-    [editingMed, addMedication, updateMedication]
+    [editingMed, addMedication, updateMedication, onFormClose],
   );
 
   const handleFormCancel = useCallback(() => {
     setShowForm(false);
     setEditingMed(null);
-  }, []);
+    onFormClose?.();
+  }, [onFormClose]);
 
   return (
     <>
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={handleSearchClick}
-          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
-        >
-          🔍 Search Meds
-        </button>
-        <button
-          type="button"
-          onClick={handleAddClick}
-          className="rounded-full bg-[#4a80f0] px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-[#3a70e0]"
-        >
-          + Add New
-        </button>
-      </div>
+      {/* Section Header */}
+      <h2 className="font-semibold text-slate-900 text-xl">All Medications</h2>
 
       {/* Medications List */}
       <AllMedsView
