@@ -1,50 +1,18 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMedications } from "@/hooks/useMedications";
 import { useDoseLog } from "@/hooks/useDoseLog";
 import { shouldTakeMedToday } from "@/utils/scheduling";
 import { getDateKey } from "@/utils/date";
 import { Medication, ScheduleEntry } from "@/types";
+import { formatClockTime } from "@/utils/timeWindows";
+import { MOCK_APPOINTMENTS, MOCK_DOCUMENTS } from "@/data/mocks";
 
 // ============================================
 // Mock Data (placeholder for other sections)
 // ============================================
-
-const MOCK_APPOINTMENTS = [
-  {
-    id: 1,
-    doctor: "Dr. Chen",
-    specialty: "Cardiology",
-    date: "2026-01-20",
-    time: "2:00 PM",
-  },
-  {
-    id: 2,
-    doctor: "Dr. Patel",
-    specialty: "Primary Care",
-    date: "2026-01-22",
-    time: "10:30 AM",
-  },
-];
-
-const MOCK_DOCUMENTS = [
-  {
-    id: 1,
-    type: "Lab Results",
-    name: "CBC Panel",
-    date: "2026-01-15",
-    isNew: true,
-  },
-  {
-    id: 2,
-    type: "Bill",
-    name: "St. Mary's Hospital",
-    date: "2026-01-12",
-    isNew: true,
-  },
-];
 
 const MOCK_ALERTS = [
   {
@@ -81,7 +49,7 @@ function WelcomeCard() {
   });
 
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-lg">
+    <div className="rounded-2xl border border-emerald-200 bg-white p-6">
       <h2 className="text-xl font-semibold text-slate-900">{greeting}! 👋</h2>
       <p className="text-slate-600">{dateStr}</p>
     </div>
@@ -105,11 +73,13 @@ function TodaysMedsCard({
   onUndo,
   isTaken,
 }: TodaysMedsCardProps) {
-  const adherenceRate =
-    totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const visibleSchedule = isExpanded ? schedule : schedule.slice(0, 5);
+  const hiddenCount = schedule.length - 5;
 
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-white shadow-lg">
+    <div className="rounded-2xl border border-emerald-200 bg-white">
       <div className="flex items-center justify-between border-b border-slate-100 p-4">
         <div className="flex items-center gap-2">
           <span className="text-xl">💊</span>
@@ -118,7 +88,7 @@ function TodaysMedsCard({
           </h3>
         </div>
         <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
-          {adherenceRate}% complete
+          {takenCount}/{totalCount} taken
         </span>
       </div>
 
@@ -128,7 +98,7 @@ function TodaysMedsCard({
             No medications scheduled for today
           </p>
         ) : (
-          schedule.slice(0, 5).map((entry) => {
+          visibleSchedule.map((entry) => {
             const taken = isTaken(entry.med.id, entry.scheduledTime);
             return (
               <div
@@ -145,7 +115,7 @@ function TodaysMedsCard({
                     </span>
                   </p>
                   <p className="text-sm text-slate-500">
-                    {entry.scheduledTime}
+                    {formatClockTime(entry.scheduledTime)}
                   </p>
                 </div>
                 {taken ? (
@@ -171,11 +141,15 @@ function TodaysMedsCard({
         )}
       </div>
 
-      {schedule.length > 5 && (
+      {hiddenCount > 0 && (
         <div className="border-t border-slate-100 p-3 text-center">
-          <span className="text-sm text-slate-500">
-            +{schedule.length - 5} more
-          </span>
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-sm font-medium text-[#4a80f0] hover:underline"
+          >
+            {isExpanded ? "Show less ↑" : `show ${hiddenCount} more ↓`}
+          </button>
         </div>
       )}
 
@@ -193,7 +167,7 @@ function TodaysMedsCard({
 
 function AppointmentsCard() {
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-white shadow-lg">
+    <div className="rounded-2xl border border-emerald-200 bg-white">
       <div className="flex items-center gap-2 border-b border-slate-100 p-4">
         <span className="text-xl">📅</span>
         <h3 className="text-lg font-semibold text-slate-900">
@@ -233,7 +207,7 @@ function AppointmentsCard() {
 
 function DocumentsCard() {
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-white shadow-lg">
+    <div className="rounded-2xl border border-emerald-200 bg-white">
       <div className="flex items-center gap-2 border-b border-slate-100 p-4">
         <span className="text-xl">📄</span>
         <h3 className="text-lg font-semibold text-slate-900">
@@ -271,7 +245,7 @@ function DocumentsCard() {
 
 function AlertsCard() {
   return (
-    <div className="rounded-2xl border border-amber-200 bg-white shadow-lg">
+    <div className="rounded-2xl border border-amber-200 bg-white">
       <div className="flex items-center gap-2 border-b border-amber-100 p-4">
         <span className="text-xl">⚠️</span>
         <h3 className="text-lg font-semibold text-amber-700">
@@ -311,7 +285,7 @@ function AlertsCard() {
 
 function QuickActionsCard() {
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-lg">
+    <div className="rounded-2xl border border-emerald-200 bg-white p-4">
       <h3 className="mb-3 text-lg font-semibold text-slate-900">
         Quick Actions
       </h3>

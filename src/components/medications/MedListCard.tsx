@@ -18,7 +18,7 @@ interface MedListCardProps {
   med: Medication;
   onEdit?: (med: Medication) => void;
   onDelete?: (med: Medication) => void;
-  caregiverMode?: boolean;
+  // caregiverMode?: boolean;
   fontSize?: FontSize;
 }
 
@@ -30,7 +30,7 @@ export default function MedListCard({
   med,
   onEdit,
   onDelete,
-  caregiverMode = false,
+  // caregiverMode = false,
   fontSize = "normal",
 }: MedListCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -40,8 +40,8 @@ export default function MedListCard({
     typeof med.pillsRemaining === "number" &&
     med.pillsRemaining < LOW_STOCK_THRESHOLD;
 
-  const canEdit = Boolean(caregiverMode && onEdit);
-  const canDelete = Boolean(caregiverMode && onDelete);
+  const canEdit = Boolean(onEdit);
+  const canDelete = Boolean(onDelete);
 
   return (
     <div className="rounded-[10px] border border-slate-50 bg-white p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)]">
@@ -87,9 +87,9 @@ export default function MedListCard({
               type="button"
               onClick={() => canEdit && onEdit?.(med)}
               disabled={!canEdit}
-              className={`min-h-9 rounded-full border px-3 py-1 text-xs font-medium ${
+              className={`min-h-9 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                 canEdit
-                  ? "border-gray-300 text-gray-800"
+                  ? "border-gray-300 text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
                   : "cursor-not-allowed border-gray-200 text-gray-400 opacity-60"
               }`}
             >
@@ -99,9 +99,9 @@ export default function MedListCard({
               type="button"
               onClick={() => canDelete && onDelete?.(med)}
               disabled={!canDelete}
-              className={`min-h-9 rounded-full border px-3 py-1 text-xs font-semibold ${
+              className={`min-h-9 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
                 canDelete
-                  ? "border-red-500 text-red-600"
+                  ? "border-red-500 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
                   : "cursor-not-allowed border-gray-200 text-gray-400 opacity-60"
               }`}
             >

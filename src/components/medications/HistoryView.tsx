@@ -119,6 +119,7 @@ function DayCard({ dateKey, entries, medMap }: DayCardProps) {
         )}
       </div>
 
+      {/* TODO Uncomment when these actually go somewhere
       <div className="flex flex-col items-center gap-4">
         <button
           type="button"
@@ -134,7 +135,7 @@ function DayCard({ dateKey, entries, medMap }: DayCardProps) {
         >
           More details
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -166,8 +166,14 @@ export default function MedForm({
   // ============================================
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-4 shadow-xl sm:p-6">
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4"
+      onClick={onCancel}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-4 shadow-xl sm:p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="mb-4 text-xl font-semibold text-gray-900">
           {initialMed ? "Edit Medication" : "Add Medication"}
         </h2>
@@ -397,7 +403,7 @@ export default function MedForm({
             <button
               type="button"
               onClick={onCancel}
-              className="min-h-11 rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-800"
+              className="min-h-11 rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
             >
               Cancel
             </button>
