@@ -31,7 +31,12 @@
     "**/*.mts",
     "../archives/TodaysMedsSection.tsx",
     "../archives/TodayView.tsx",
-    "../archives/MedCard.tsx"
+    "../archives/MedCard.tsx",
+    "src/components/bills/BillActionsTabs.tsx",
+    "../archives/BillActionsPanel.tsx",
+    "../archives/ContactScriptDisplay.tsx",
+    "../archives/DoctorQuestionsDisplay.tsx",
+    "../archives/ScamCheckDisplay.tsx"
   ],
   "exclude": ["node_modules"]
 }

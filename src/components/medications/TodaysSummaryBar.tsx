@@ -98,7 +98,7 @@ export default function TodaysSummaryBar() {
           <ProgressRing taken={takenCount} total={totalCount} size="sm" />
 
           <div>
-            <h2 className="font-semibold text-slate-900 text-lg">
+            <h2 className="font-semibold text-slate-900 text-xl">
               Today&apos;s Medications
             </h2>
             {!isExpanded && (

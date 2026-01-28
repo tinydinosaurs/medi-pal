@@ -88,7 +88,7 @@ function TodaysMedsCard({
             Today&apos;s Medications
           </h3>
         </div>
-<ProgressRing taken={takenCount} total={totalCount} size="sm" />
+        <ProgressRing taken={takenCount} total={totalCount} size="sm" />
       </div>
 
       <div className="divide-y divide-slate-50">
@@ -222,7 +222,7 @@ function DocumentsCard() {
                 {doc.type} • {doc.date}
               </p>
             </div>
-            {doc.isNew && (
+            {doc.reviewed && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                 New
               </span>

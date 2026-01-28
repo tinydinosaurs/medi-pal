@@ -26,7 +26,7 @@ export default function MedicationsPage() {
     <div className="space-y-4">
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Medications</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Medications</h1>
         <div className="flex gap-2">
           <button
             type="button"

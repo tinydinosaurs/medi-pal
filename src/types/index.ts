@@ -67,6 +67,13 @@ export interface Document {
   reviewed: boolean;
 }
 
+export interface BillSubNavItem {
+  id: string;
+  label: string;
+  icon: string;
+  requiresAnalysis?: boolean;
+}
+
 export interface BillAnalysis {
   summary: string;
   potentialIssues: string[];
@@ -76,6 +83,8 @@ export interface BillAnalysis {
   totalAmount: string | null;
   minimumDue: string | null;
   billingPeriod: string | null;
+  insuranceCoverage: string | null;
+  nextSteps: string[];
 }
 
 export type BillStatus = "paid" | "waiting" | "need-to-call";
@@ -88,7 +97,14 @@ export interface BillHistoryItem {
   summary: string;
   status: BillStatus;
   notes?: string;
+  billText: string;
+  analysis: BillAnalysis;
+  contactScript?: string;
+  doctorQuestions?: string;
+  scamCheck?: string;
 }
+
+export type TabId = "script" | "questions" | "scam";
 
 // ============================================
 // Chat

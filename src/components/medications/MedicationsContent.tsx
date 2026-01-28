@@ -68,7 +68,7 @@ export default function MedicationsContent({
   return (
     <>
       {/* Section Header */}
-      <h2 className="font-semibold text-slate-900 text-xl">All Medications</h2>
+      <h2 className="font-semibold text-slate-900 text-2xl">All Medications</h2>
 
       {/* Medications List */}
       <AllMedsView

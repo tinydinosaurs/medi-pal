@@ -27,3 +27,11 @@ export {
 
 // Safety utilities
 export * from './safety';
+
+// Bill Analysis
+export {
+  analyzeBill,
+  generateContactScript,
+  generateDoctorQuestions,
+  checkScam,
+} from './bill-analysis';
