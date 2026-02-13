@@ -45,14 +45,29 @@ export type GroupedHistory = [string, DoseRecord[]][];
 // Appointments
 // ============================================
 
-export interface Appointment {
+/**
+ * Shared appointment fields used by forms, extraction, and display.
+ * All fields nullable to support partial data during input/extraction.
+ */
+export interface AppointmentFields {
+  title?: string | null; // Optional title field for user-defined appointment names
+  doctor: string | null;
+  specialty: string | null;
+  location: string | null;
+  address: string | null;
+  phone: string | null;
+  date: string | null;
+  time: string | null;
+  reason: string | null;
+  notes: string | null;
+}
+
+/**
+ * Full appointment record with ID and status.
+ */
+export interface Appointment extends AppointmentFields {
   id: number;
-  doctor: string;
-  specialty: string;
-  date: string; // ISO date
-  time: string;
   prepared: boolean;
-  notes?: string;
 }
 
 // ============================================
@@ -125,3 +140,15 @@ export interface FamilyActivity {
   action: string;
   time: string;
 }
+
+// ============================================
+// Shared Types
+// ============================================
+
+export type ContentType =
+  | "ics" // Calendar file - parse deterministically
+  | "text" // Plain text - needs AI extraction
+  | "email" // Email content - needs AI extraction
+  | "image" // Image file - needs OCR + AI (future)
+  | "pdf" // PDF file - needs extraction + AI (future)
+  | "unknown";

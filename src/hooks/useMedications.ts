@@ -1,55 +1,49 @@
-import { useState, useEffect, useCallback } from "react";
-import { Medication } from "@/types";
-import { loadMedications, saveMedications } from "@/utils/storage";
+import { useCallback } from "react";
+import { useStorageState } from "@/lib/useStorageState";
+import type { Medication } from "@/types";
+
+const STORAGE_KEY = "caretaker-medications";
 
 export function useMedications() {
-  const [medications, setMedications] = useState<Medication[]>(() => {
-    if (typeof window === "undefined") return [];
-    return loadMedications() as Medication[];
-  });
+  const [medications, setMedications] = useStorageState<Medication[]>(
+    STORAGE_KEY,
+    []
+  );
 
-  // Derived: we're loaded if we're on the client
-  const isLoaded = typeof window !== "undefined";
-
-  // Persist whenever medications change
-  useEffect(() => {
-    saveMedications(medications);
-  }, [medications]);
-
-  const addMedication = useCallback((med: Omit<Medication, "id">) => {
-    // we omit id since we're creating the id here
+  const addMedication = useCallback((data: Omit<Medication, "id">) => {
     const newMed: Medication = {
-      ...med,
-      id: Date.now(), // Easy unique ID for now - replace with better ID generation after POC
+      ...data,
+      id: Date.now(),
     };
     setMedications((prev) => [...prev, newMed]);
     return newMed;
-  }, []);
+  }, [setMedications]);
 
   const updateMedication = useCallback(
-    (id: number, updates: Partial<Medication>) => {
+    (id: number, updates: Partial<Omit<Medication, "id">>) => {
       setMedications((prev) =>
-        prev.map((med) => (med.id === id ? { ...med, ...updates } : med))
+        prev.map((med) => (med.id === id ? { ...med, ...updates } : med)),
       );
     },
-    []
+    [setMedications],
   );
 
   const deleteMedication = useCallback((id: number) => {
     setMedications((prev) => prev.filter((med) => med.id !== id));
-  }, []);
+  }, [setMedications]);
 
-  const getMedication = useCallback(
-    (id: number) => medications.find((med) => med.id === id),
-    [medications]
+  const getMedicationById = useCallback(
+    (id: number): Medication | undefined => {
+      return medications.find((med) => med.id === id);
+    },
+    [medications],
   );
 
   return {
     medications,
-    isLoaded,
     addMedication,
     updateMedication,
     deleteMedication,
-    getMedication,
+    getMedicationById,
   };
 }

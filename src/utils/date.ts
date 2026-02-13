@@ -33,3 +33,17 @@ export function formatDateLabelShort(dateKey: string): string {
     day: "numeric",
   });
 }
+
+/**
+ * Converts 24hr time string to 12hr format with AM/PM
+ * @param time24 - Time in "HH:MM" format (e.g., "14:00")
+ * @returns Time in "H:MM AM/PM" format (e.g., "2:00 PM")
+ */
+export function formatTime12hr(time24: string | null): string {
+  if (!time24) return "";
+  const [hours, minutes] = time24.split(":").map(Number);
+  if (isNaN(hours) || isNaN(minutes)) return time24;
+  const period = hours >= 12 ? "PM" : "AM";
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
+}

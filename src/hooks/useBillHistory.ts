@@ -1,80 +1,22 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useStorageState, useStorageFlag } from "@/lib/useStorageState";
+import { storage } from "@/lib/storage";
 import type { BillAnalysis, BillHistoryItem, BillStatus } from "@/types";
 
 const HISTORY_STORAGE_KEY = "caretaker-bill-history";
 const HISTORY_ENABLED_KEY = "caretaker-bill-history-enabled";
 const MAX_HISTORY_ITEMS = 50;
 
-function loadBillHistory(): BillHistoryItem[] {
-  if (typeof window === "undefined") return [];
-
-  try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed as BillHistoryItem[];
-    }
-  } catch {
-    // Ignore invalid data
-  }
-
-  return [];
-}
-
-function saveBillHistory(history: BillHistoryItem[]): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function loadHistoryEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-
-  try {
-    return localStorage.getItem(HISTORY_ENABLED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function saveHistoryEnabled(enabled: boolean): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    localStorage.setItem(HISTORY_ENABLED_KEY, enabled ? "true" : "false");
-  } catch {
-    // Ignore storage errors
-  }
-}
-
 export function useBillHistory() {
-  const [history, setHistory] = useState<BillHistoryItem[]>(() =>
-    loadBillHistory(),
+  const [history, setHistory] = useStorageState<BillHistoryItem[]>(
+    HISTORY_STORAGE_KEY,
+    []
   );
 
-  const [isEnabled, setIsEnabled] = useState<boolean>(() =>
-    loadHistoryEnabled(),
+  const [isEnabled, setIsEnabled] = useStorageFlag(
+    HISTORY_ENABLED_KEY,
+    false
   );
-
-  const isLoaded = typeof window !== "undefined";
-
-  // Persist history when it changes
-  useEffect(() => {
-    if (isEnabled) {
-      saveBillHistory(history);
-    }
-  }, [history, isEnabled]);
-
-  // Persist enabled state and clear history if disabled
-  useEffect(() => {
-    saveHistoryEnabled(isEnabled);
-  }, [isEnabled]);
 
   const addBill = useCallback(
     (billText: string, analysis: BillAnalysis) => {
@@ -95,20 +37,20 @@ export function useBillHistory() {
       setHistory((prev) => [newItem, ...prev].slice(0, MAX_HISTORY_ITEMS));
       return newItem;
     },
-    [isEnabled],
+    [isEnabled, setHistory],
   );
 
   const updateBillStatus = useCallback((id: string, status: BillStatus) => {
     setHistory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, status } : item)),
     );
-  }, []);
+  }, [setHistory]);
 
   const updateBillNotes = useCallback((id: string, notes: string) => {
     setHistory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, notes } : item)),
     );
-  }, []);
+  }, [setHistory]);
 
   const updateBillActions = useCallback(
     (
@@ -123,27 +65,25 @@ export function useBillHistory() {
         prev.map((item) => (item.id === id ? { ...item, ...actions } : item)),
       );
     },
-    [],
+    [setHistory],
   );
 
   const deleteBill = useCallback((id: string) => {
     setHistory((prev) => prev.filter((item) => item.id !== id));
-  }, []);
+  }, [setHistory]);
 
   const clearHistory = useCallback(() => {
     setHistory([]);
-    localStorage.removeItem(HISTORY_STORAGE_KEY);
-  }, []);
+    storage.remove(HISTORY_STORAGE_KEY);
+  }, [setHistory]);
 
   const toggleEnabled = useCallback((enabled: boolean) => {
     setIsEnabled(enabled);
-    saveHistoryEnabled(enabled);
-  }, []);
+  }, [setIsEnabled]);
 
   return {
     history,
     isEnabled,
-    isLoaded,
     addBill,
     updateBillStatus,
     updateBillNotes,

@@ -1,3 +1,6 @@
+"use client";
+
+import { AppointmentForm } from "@/components/appointments";
 export default function AppointmentsPage() {
   return (
     <div className="space-y-4">
@@ -9,6 +12,7 @@ export default function AppointmentsPage() {
         <h2 className="text-lg font-semibold text-slate-900">Coming Soon</h2>
         <p className="mt-2 text-slate-600">
           Appointment management will be available in a future update.
+          <AppointmentForm />
         </p>
       </div>
     </div>

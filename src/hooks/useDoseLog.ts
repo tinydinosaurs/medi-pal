@@ -1,36 +1,32 @@
-import { useState, useEffect, useCallback } from "react";
-import { DoseRecord } from "@/types";
-import { loadTakenLog, saveTakenLog } from "@/utils/storage";
+import { useCallback } from "react";
+import { useStorageState } from "@/lib/useStorageState";
+import { storage } from "@/lib/storage";
+import type { DoseRecord } from "@/types";
+
+const STORAGE_KEY = "caretaker-dose-log";
 
 export function useDoseLog() {
-  const [doseLog, setDoseLog] = useState<DoseRecord[]>(() => {
-    if (typeof window === "undefined") return []; // SSR guard
-    return loadTakenLog() as DoseRecord[];
-  });
+  const [doseLog, setDoseLog] = useStorageState<DoseRecord[]>(
+    STORAGE_KEY,
+    []
+  );
 
-  // Derived: we're loaded if we're on the client
-  const isLoaded = typeof window !== "undefined";
-
-  // Persist whenever log changes
-  useEffect(() => {
-    saveTakenLog(doseLog);
-  }, [doseLog]);
-
-  const recordDose = useCallback(
+  const logDose = useCallback(
     (medId: number, scheduledTime: string, date?: string) => {
       const record: DoseRecord = {
-        date: date || new Date().toISOString().split("T")[0], // '2026-01-16'
+        date: date ?? new Date().toISOString().split("T")[0],
         medId,
         scheduledTime,
         takenAt: new Date().toISOString(),
       };
+
       setDoseLog((prev) => [...prev, record]);
       return record;
     },
-    []
+    [setDoseLog],
   );
 
-  const undoDose = useCallback(
+  const removeDose = useCallback(
     (medId: number, scheduledTime: string, date: string) => {
       setDoseLog((prev) =>
         prev.filter(
@@ -39,11 +35,11 @@ export function useDoseLog() {
               record.medId === medId &&
               record.scheduledTime === scheduledTime &&
               record.date === date
-            )
-        )
+            ),
+        ),
       );
     },
-    []
+    [setDoseLog],
   );
 
   const isDoseTaken = useCallback(
@@ -52,33 +48,38 @@ export function useDoseLog() {
         (record) =>
           record.medId === medId &&
           record.scheduledTime === scheduledTime &&
-          record.date === date
+          record.date === date,
       );
     },
-    [doseLog]
+    [doseLog],
   );
 
   const getDosesForDate = useCallback(
     (date: string): DoseRecord[] => {
       return doseLog.filter((record) => record.date === date);
     },
-    [doseLog]
+    [doseLog],
   );
 
-  const getDosesForMedication = useCallback(
+  const getDosesForMed = useCallback(
     (medId: number): DoseRecord[] => {
       return doseLog.filter((record) => record.medId === medId);
     },
-    [doseLog]
+    [doseLog],
   );
+
+  const clearLog = useCallback(() => {
+    setDoseLog([]);
+    storage.remove(STORAGE_KEY);
+  }, [setDoseLog]);
 
   return {
     doseLog,
-    isLoaded,
-    recordDose,
-    undoDose,
+    logDose,
+    removeDose,
     isDoseTaken,
     getDosesForDate,
-    getDosesForMedication,
+    getDosesForMed,
+    clearLog,
   };
 }
