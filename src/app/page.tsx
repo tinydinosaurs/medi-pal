@@ -180,11 +180,12 @@ function AppointmentsCard() {
               <p className="font-semibold text-slate-900">{apt.doctor}</p>
               <p className="text-sm text-slate-600">{apt.specialty}</p>
               <p className="text-sm text-slate-500">
-                {new Date(apt.date).toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}{" "}
+                {apt.date &&
+                  new Date(apt.date).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
                 at {apt.time}
               </p>
             </div>
