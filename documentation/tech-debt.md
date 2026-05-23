@@ -27,7 +27,47 @@ Medication section tech debt
 
 Future direction for skills, MCP, and agent capabilities
 
-### Current State
+### AI Provider Abstraction (near-term)
+
+> **Status:** Currently blocking local development. Azure AI Foundry credentials may no longer be active; until an Anthropic provider is wired in, no AI feature (bill analysis, contact scripts, doctor questions, scam check, appointment extraction) can be exercised locally.
+
+The app is **designed** to be LLM-provider-agnostic but is **currently locked to Azure AI Foundry** at the implementation layer. Call-sites already go through `simpleChat(systemPrompt, userMessage, options)` from `src/lib/ai`, so the abstraction seam exists — but the function lives in `src/lib/ai/azure-foundry.ts` and unconditionally calls Azure.
+
+**Why this matters now:** local development and testing should be able to switch between Azure AI Foundry and Anthropic Claude (and eventually others) without code changes — only env-var changes.
+
+**Refactor steps:**
+
+1. Extract the abstract interface (`ChatMessage`, `ChatOptions`, `ChatResponse`, `simpleChat`) into a provider-neutral file — e.g. `src/lib/ai/provider.ts` or `src/lib/ai/types.ts`.
+2. Move the Azure implementation into `src/lib/ai/providers/azure-foundry.ts` exporting a `simpleChat`-shaped function.
+3. Add `src/lib/ai/providers/anthropic.ts` with the same signature, calling Anthropic's Messages API (no SDK required — `fetch` is fine, matching the Azure wrapper's style).
+4. Add a selector in `src/lib/ai/index.ts` that picks the provider implementation based on `process.env.AI_PROVIDER` (`"azure-foundry"` default, `"anthropic"` alternate). The selector should validate the corresponding provider's env vars are present and throw a clear error if not.
+5. Rename `chatWithAzureFoundry` exports to a neutral name (e.g. `chatWithProvider`) or keep both as aliases during transition.
+6. Update API routes and `extractAppointment()` if they import anything provider-specific (today they only import `simpleChat` and `analyzeBill`/etc., so no changes expected).
+
+**Env var shape (target):**
+
+```bash
+AI_PROVIDER=anthropic            # or "azure-foundry" (default)
+
+# Azure AI Foundry (loaded only when AI_PROVIDER=azure-foundry)
+AZURE_AI_FOUNDRY_ENDPOINT=...
+AZURE_AI_FOUNDRY_API_KEY=...
+AZURE_AI_FOUNDRY_API_VERSION=...
+AZURE_AI_FOUNDRY_MODEL=gpt-4.1-mini
+
+# Anthropic (loaded only when AI_PROVIDER=anthropic)
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-sonnet-4-5
+```
+
+**Acceptance criteria:**
+
+- All API routes work identically under both providers
+- Switching providers requires only an env-var change + server restart, never a code change
+- Missing/malformed provider config produces a clear error at startup or first call, not a cryptic 500
+- The safety layer in `src/lib/ai/safety/` continues to wrap calls regardless of provider
+
+### Current State (broader AI strategy)
 
 - Domain prompts in `prompts.ts` act as proto-skills (bill analysis, contact script, etc.)
 - Storage abstraction in `lib/storage.ts` ready for IndexedDB migration
