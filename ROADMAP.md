@@ -95,6 +95,25 @@ MVP is the first version real users can trust with real data. The focus is persi
 - [ ] Font size preference applied app-wide (setting already exists in medications)
 - [ ] Keyboard navigation works throughout
 
+### Mobile-Specific Layout (design decision)
+
+MediPal serves a span of caregivers and care partners whose comfort with small screens varies enough that a single responsive layout will serve nobody well. Device comfort doesn't track cleanly with age — it tracks with individual habit, eyesight, motor control, and cognitive load. There are three user surface profiles to design for:
+
+- **Mobile-first / mobile-comfortable.** Reaches for the phone first for almost everything, including tasks others would do on a computer. Wants the mobile experience to have enough feature depth to actually manage care from a phone, not just glance at it.
+- **Mobile-and-desktop hybrid.** Uses both, but prefers desktop for anything involving reading, typing, or close attention. Mobile is for quick check-ins (today's doses, next appointment). Desktop is for adding, editing, reviewing bills, configuring.
+- **Desktop-only (or near-only).** Can't comfortably use a phone for the app at all. Reasons span the cohort — never got comfortable with smartphones, failing eyesight, hand tremor or weakness (Parkinson's, post-stroke, frailty), brain fog from illness or treatment, cognitive impairment. For this group the desktop experience isn't a fallback — it's the *only* path that works.
+
+The practical implications:
+
+- [ ] **Mobile is not a stripped-down desktop.** It needs its own feature scope — not the whole app, but more than a status dashboard. The mobile-first cohort should be able to run their day from their phone (record doses, add a new appointment from a forwarded email, check today's schedule, see alerts).
+- [ ] **Desktop is not optional, ever.** Every workflow must work fully on desktop. Some workflows can exist *only* on desktop without breaking the product.
+- [ ] **Mobile navigation pattern** — evaluate bottom tab bar vs. simplified top nav; whichever pattern best supports the mobile feature scope wins.
+- [ ] **Routing strategy** — decide between (a) responsive components that render differently below a breakpoint, (b) parallel route tree (`/m/...`), or (c) middleware-driven component swap. The choice affects how cleanly the two layouts can diverge.
+- [ ] **Content and entry points** — copy, empty states, and CTAs need to read well in both layouts independently. "Open this on your computer" is a legitimate mobile empty state for desktop-only features, but it should be rare.
+- [ ] Usability validation with at least 2–3 users from each surface profile before committing to the split.
+
+This is a layout *strategy* decision that gates the responsive-layout work above it. Worth resolving before serious mobile design work begins so the testing targets are clear.
+
 ### Stability
 - [ ] Error boundaries on all pages (no white screens)
 - [ ] Loading states on all AI calls
@@ -185,6 +204,17 @@ Before GA. Resilience layer for when the AI provider is unavailable, rate-limite
 ## Deferred (Real But Not Near-Term)
 
 These are legitimate product directions that require significant infrastructure or external dependencies. Not in scope until post-MVP is stable.
+
+### Platform Expansion (long-term vision)
+
+The long-term goal is to remove "figure out how to install this on multiple devices" as a barrier for care partners and caregivers entirely. The intended path:
+
+1. **Mobile-optimized web app (MVP-era).** The current track. Works on any device with a browser; no install friction.
+2. **Native mobile app (post-MVP, near-term-ish).** iOS + Android, likely React Native or similar to share component logic with the web app. Enables push notifications, better offline behavior, and a real home-screen presence.
+3. **Dedicated hardware (long-term).** A pair of tablet-like devices pre-loaded with MediPal — one for the caregiver, one for the care partner — already configured, paired, and ready to use out of the box. Removes the install / account-setup / device-pairing burden that excludes the least tech-comfortable users today.
+4. **Native desktop apps (long-term).** macOS and Windows. For the desktop-primary cohort who would benefit from notifications, offline access, and tighter OS integration than a browser tab can provide.
+
+Each step assumes the previous one is in use and informing the design of the next. The hardware step in particular is contingent on having enough real-world usage to know what the ideal pre-configured experience should look like.
 
 - **Pharmacy integration** — import medications from pharmacy portal; refill requests
 - **Patient portal import** — pull appointments/records from Epic/Cerner via FHIR API

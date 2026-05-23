@@ -64,7 +64,7 @@ src/
 │   ├── medications/        # TodaysSummaryBar, MedForm, MedListCard, AllMedsView,
 │   │                       # MedicationsContent, HistoryView, HistoryContent,
 │   │                       # ProgressRing, SettingsView
-│   ├── shared/             # ContentInput, EmptyState, TopNav, BottomNav, Skeleton,
+│   ├── shared/             # ContentInput, EmptyState, TopNav, Skeleton,
 │   │                       # ClientOnlyWrapper, ExtractedDataReview (empty stub)
 │   └── ui/                 # shadcn primitives (button, card, dialog, input, checkbox,
 │                           # badge, separator)
