@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect, useState, ReactNode } from "react";
+import { useSyncExternalStore, ReactNode } from "react";
 
 interface ClientOnlyProps {
   children: ReactNode;
   fallback?: ReactNode;
 }
 
+// No-op subscribe: "mounted" never changes after the first client render.
+const subscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function ClientOnly({
   children,
   fallback = null,
 }: ClientOnlyProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
 
   if (!mounted) {
     return <>{fallback}</>;

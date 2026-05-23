@@ -1,36 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeBill, generateDoctorQuestions } from "@/lib/ai";
+import { coerceBillAnalysis } from "@/lib/bill-analysis-coerce";
 import type { BillAnalysis } from "@/types";
 
 interface DoctorQuestionsRequestBody {
   text?: unknown;
   analysis?: unknown;
-}
-
-function coerceBillAnalysis(value: unknown): BillAnalysis | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const maybe = value as Partial<BillAnalysis>;
-
-  if (
-    typeof maybe.summary !== "string" ||
-    !Array.isArray(maybe.potentialIssues)
-  ) {
-    return null;
-  }
-
-  return {
-    summary: maybe.summary,
-    potentialIssues: maybe.potentialIssues.map(String),
-    vendorName: maybe.vendorName ?? null,
-    statementDate: maybe.statementDate ?? null,
-    dueDate: maybe.dueDate ?? null,
-    totalAmount: maybe.totalAmount ?? null,
-    minimumDue: maybe.minimumDue ?? null,
-    billingPeriod: maybe.billingPeriod ?? null,
-  };
 }
 
 export async function POST(request: NextRequest) {

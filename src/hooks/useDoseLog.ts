@@ -11,7 +11,7 @@ export function useDoseLog() {
     []
   );
 
-  const logDose = useCallback(
+  const recordDose = useCallback(
     (medId: number, scheduledTime: string, date?: string) => {
       const record: DoseRecord = {
         date: date ?? new Date().toISOString().split("T")[0],
@@ -26,7 +26,7 @@ export function useDoseLog() {
     [setDoseLog],
   );
 
-  const removeDose = useCallback(
+  const undoDose = useCallback(
     (medId: number, scheduledTime: string, date: string) => {
       setDoseLog((prev) =>
         prev.filter(
@@ -75,8 +75,8 @@ export function useDoseLog() {
 
   return {
     doseLog,
-    logDose,
-    removeDose,
+    recordDose,
+    undoDose,
     isDoseTaken,
     getDosesForDate,
     getDosesForMed,

@@ -11,6 +11,21 @@ Debt related to parts of the app not specific to a particular area
 - Offline support / PWA enhancements
 - Refactor for mobile device support
 
+### No Automated Test Coverage
+
+> **Status:** Zero tests in the repo. Not currently blocking, but will compound rapidly once the codebase has real users or multiple contributors. Tracked in detail in [ROADMAP.md](../ROADMAP.md#testing) under MVP.
+
+The app has accumulated several areas where a silent regression would be hard to notice manually but high-impact:
+
+- **Scheduling logic** (`src/utils/scheduling.ts`, `src/utils/timeWindows.ts`) — wrong dose-on-wrong-day bugs are silent and matter clinically.
+- **AI safety guardrails** (`src/lib/ai/safety/`) — the entire value proposition of this layer is "provably blocks X." Without tests, that's a marketing claim, not a verifiable property.
+- **Input coercion / validation boundaries** (`src/lib/bill-analysis-coerce.ts`, future appointment extraction validators) — these exist specifically to handle malformed input; they should be tested with malformed input.
+- **ICS parsing** — three major calendar apps emit subtly different ICS; regressions here would silently lose appointment data.
+
+**Recommended stack:** Vitest (better Next 16 / ESM / TS ergonomics than Jest, API-compatible if migration is ever needed). Co-located `foo.test.ts` next to `foo.ts`.
+
+**Why now in the debt list:** every week without tests adds another module whose behavior is locked in only by "I clicked through it once and it seemed fine." The cost of catching up grows superlinearly.
+
 ## Medications
 
 Medication section tech debt

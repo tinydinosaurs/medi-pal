@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useMedications } from "@/hooks/useMedications";
 import AllMedsView from "@/components/medications/AllMedsView";
 import MedForm from "@/components/medications/MedForm";
@@ -23,13 +23,17 @@ export default function MedicationsContent({
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  // Sync with external form trigger
-  useEffect(() => {
+  // Adjust state during render when the external trigger flips on.
+  // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevShowFormExternal, setPrevShowFormExternal] =
+    useState(showFormExternal);
+  if (showFormExternal !== prevShowFormExternal) {
+    setPrevShowFormExternal(showFormExternal);
     if (showFormExternal) {
       setEditingMed(null);
       setShowForm(true);
     }
-  }, [showFormExternal]);
+  }
 
   const handleEdit = useCallback((med: Medication) => {
     setEditingMed(med);

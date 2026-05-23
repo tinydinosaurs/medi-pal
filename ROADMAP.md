@@ -101,6 +101,27 @@ MVP is the first version real users can trust with real data. The focus is persi
 - [ ] Graceful degradation when API is unavailable
 - [ ] Basic input validation on all forms
 
+### Testing
+
+No automated test suite exists today. Worth introducing before MVP so refactors and new features don't silently break existing behavior. Broken into phases by ROI — each phase is independently shippable and provides value without requiring the next.
+
+- [ ] **Phase 1: Toolchain bootstrap.** Add Vitest + co-located `*.test.ts` convention. One trivial passing test in `src/utils/` to validate the runner, path aliases, and CI integration. No production code changes.
+- [ ] **Phase 2: Domain logic tests (highest ROI).** Cover the pure functions where a silent regression would matter most:
+  - [ ] `src/utils/scheduling.ts` — `shouldTakeMedToday()` and helpers, including every-other-day boundaries, specific-days-of-week, DST transitions
+  - [ ] `src/utils/timeWindows.ts` — adherence window math
+  - [ ] `src/lib/content/ics-parser.ts` — feed real-world ICS samples from Google Calendar, Outlook, Apple Calendar; assert parsed `AppointmentFields` shape
+  - [ ] `src/lib/bill-analysis-coerce.ts` — confirm malformed, malicious, and missing-field inputs all produce safe output
+- [ ] **Phase 3: AI safety layer tests.** Lock in the behavior of the guardrails — these tests *are* the proof that the safety claims hold.
+  - [ ] `src/lib/ai/safety/output-validator.ts` — corpus of "should be flagged" / "should pass" strings covering diagnostic language, treatment recommendations, emergency keywords
+  - [ ] `src/lib/ai/safety/input-sanitizer.ts` — PII detection, sanitization edge cases
+  - [ ] `src/lib/ai/safety/safe-chat.ts` — integration test that input → sanitize → (mocked) `simpleChat` → validate → audit-log path executes in order
+- [ ] **Phase 4 (deferred to post-MVP): Component and route tests.** Hold until UI is stable. At that point: testing-library coverage of the high-traffic flows (record dose, save appointment, analyze bill) and integration tests for the API routes with mocked providers.
+
+Decisions:
+- Vitest over Jest (better Next 16 / ESM / TS ergonomics; Jest API-compatible if migration ever needed)
+- Co-located tests (`foo.ts` + `foo.test.ts`) over a separate `__tests__/` tree
+- No coverage threshold gates — they reward padding over signal
+
 ---
 
 ## Post-MVP (Near-Term)
