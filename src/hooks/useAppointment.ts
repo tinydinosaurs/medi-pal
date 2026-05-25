@@ -6,14 +6,18 @@
 
 import { useCallback, useMemo } from "react";
 import { useStorageState } from "@/lib/useStorageState";
+import { MOCK_APPOINTMENTS, SEED_MOCKS_ENABLED } from "@/data/mocks";
 import type { Appointment } from "@/types";
 
 const STORAGE_KEY = "caretaker-appointments";
+const INITIAL_APPOINTMENTS: Appointment[] = SEED_MOCKS_ENABLED
+  ? MOCK_APPOINTMENTS
+  : [];
 
 export function useAppointments() {
   const [appointments, setAppointments] = useStorageState<Appointment[]>(
     STORAGE_KEY,
-    []
+    INITIAL_APPOINTMENTS
   );
 
   const addAppointment = useCallback(

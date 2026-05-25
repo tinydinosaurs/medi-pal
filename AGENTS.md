@@ -16,7 +16,7 @@ When in doubt about UI decisions, default to the more accessible option — it s
 
 **The core tension the app navigates:** Caregivers and care partners desperately need help making sense of medical information, but AI giving medical advice is dangerous. Every AI feature in this app is scoped to *organization and interpretation*, never diagnosis or treatment. This is not a rule to be loosened.
 
-**Current status:** Working end-to-end for medications and bills. Appointments are scaffolded (~50%) and actively in progress.
+**Current status:** All three POC sections (medications, bills, appointments) work end-to-end in the browser. AI provider abstraction has landed — the app now supports Azure AI Foundry, Anthropic Claude, and a fixture-based mock provider, selected at runtime by `AI_PROVIDER`. See [ROADMAP.md](ROADMAP.md) for what's next.
 
 ---
 
@@ -28,7 +28,7 @@ When in doubt about UI decisions, default to the more accessible option — it s
 | Runtime | React 19 |
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 + shadcn/ui (Radix primitives) — see [ROADMAP.md](ROADMAP.md) for post-MVP migration to a shared design system |
-| AI | Pluggable provider behind a `simpleChat` abstraction. Currently implemented: Azure AI Foundry (OpenAI-compatible chat completions) via a thin `fetch` wrapper in [src/lib/ai/azure-foundry.ts](src/lib/ai/azure-foundry.ts). Anthropic Claude is the next provider to add — see [documentation/tech-debt.md](documentation/tech-debt.md). |
+| AI | Pluggable provider behind a `simpleChat` abstraction. Selected at runtime by `AI_PROVIDER` env var (`azure-foundry` \| `anthropic` \| `mock`, default `azure-foundry`). Implementations under [src/lib/ai/providers/](src/lib/ai/providers/), all `fetch`-based with no vendor SDK. |
 | Storage | localStorage via `useStorageState` hook (no backend yet) |
 | Calendar parsing | `ical.js` (deterministic ICS parser) |
 | File uploads | `react-dropzone` |
@@ -50,13 +50,13 @@ src/
 │   │   ├── scam-check/     # POST: flag potential bill scam indicators
 │   │   └── route.ts        # GET: health-check that pings the AI provider
 │   ├── appointments/
-│   │   ├── page.tsx        # Appointment list view (partially wired)
-│   │   └── new/page.tsx    # Add appointment flow (incomplete)
+│   │   ├── page.tsx        # Appointment list view (complete)
+│   │   └── new/page.tsx    # Add appointment flow (complete)
 │   ├── bills/page.tsx      # Bill analyzer (complete)
 │   ├── medications/page.tsx # Medication tracker (complete)
-│   ├── history/page.tsx    # Dose history (complete)
+│   ├── history/page.tsx    # Dose history (complete; to be embedded per-section for MVP — see ROADMAP)
 │   ├── settings/page.tsx   # App settings (complete)
-│   └── documents/page.tsx  # Stub — not started
+│   └── documents/page.tsx  # Stub — deferred to post-MVP
 ├── components/
 │   ├── appointments/       # AppointmentForm, AppointmentCard, AppointmentList, AppointmentInput
 │   ├── bills/              # BillInputForm, BillAnalysisCard, BillHistory, BillSubNav,
@@ -64,13 +64,17 @@ src/
 │   ├── medications/        # TodaysSummaryBar, MedForm, MedListCard, AllMedsView,
 │   │                       # MedicationsContent, HistoryView, HistoryContent,
 │   │                       # ProgressRing, SettingsView
-│   ├── shared/             # ContentInput, EmptyState, TopNav, Skeleton,
-│   │                       # ClientOnlyWrapper, ExtractedDataReview (empty stub)
+│   ├── shared/             # ContentInput, EmptyState, TopNav, BottomNav, Skeleton,
+│   │                       # ClientOnlyWrapper, ExtractedDataReview
 │   └── ui/                 # shadcn primitives (button, card, dialog, input, checkbox,
 │                           # badge, separator)
 ├── data/
-│   └── mocks/              # Seed/demo data: medications, dose-log, appointments,
-│                           # documents, alerts
+│   ├── mocks/              # Seed/demo data gated by NEXT_PUBLIC_SEED_MOCKS=true.
+│   │                       # Dynamic factories (buildMockAppointments, buildMockDoseLog)
+│   │                       # accept a referenceDate so dev seed stays fresh and tests
+│   │                       # can pass a fixed date for determinism.
+│   └── fixtures/           # Test fixtures (e.g. appointments/*.ics, *.txt) for manual
+│                           # UI testing and future Vitest consumption.
 ├── hooks/
 │   ├── useAppointment.ts   # CRUD + upcoming/past filtering for appointments
 │   ├── useBillHistory.ts   # CRUD for bill history
@@ -78,8 +82,12 @@ src/
 │   └── useMedications.ts   # CRUD for medications
 ├── lib/
 │   ├── ai/
-│   │   ├── index.ts            # Barrel export
-│   │   ├── azure-foundry.ts    # Azure AI Foundry fetch wrapper + simpleChat helper
+│   │   ├── index.ts            # Provider selector + neutral simpleChat / chatWithProvider
+│   │   ├── provider.ts         # ChatProvider interface + ChatMessage/Options/Response types
+│   │   ├── providers/
+│   │   │   ├── azure-foundry.ts # Azure AI Foundry (OpenAI-compatible) impl
+│   │   │   ├── anthropic.ts     # Anthropic Claude Messages API impl
+│   │   │   └── mock.ts          # Fixture-based provider for dev/tests (routeKey dispatch)
 │   │   ├── bill-analysis.ts    # analyzeBill, generateContactScript,
 │   │   │                       # generateDoctorQuestions, checkScam
 │   │   ├── prompts.ts          # All system prompts (see Safety section)
@@ -122,21 +130,19 @@ src/
 - Sub-tools: contact script, doctor questions, scam check (all via separate API routes)
 - Bill history persisted with status tracking (paid / waiting / need-to-call)
 
-### Appointments (in progress)
-- `useAppointments` hook: full CRUD, `upcoming` and `past` computed lists — **done**
-- `AppointmentForm`: all fields (title, doctor, specialty, location, address, phone, date, time, reason, notes), validation — **done**
-- `ContentInput`: drag-and-drop + paste UI, routes ICS files to deterministic parser, text/email to AI — **done**
-- ICS parser ([src/lib/content/ics-parser.ts](src/lib/content/ics-parser.ts)): parses `.ics` calendar files into `AppointmentFields` — **done**
-- `APPOINTMENT_EXTRACTION_SYSTEM_PROMPT` in [src/lib/ai/prompts.ts](src/lib/ai/prompts.ts) — **done**
-- `extractAppointment()` in [src/lib/content/extraction.ts](src/lib/content/extraction.ts): AI extraction function exists and calls `simpleChat` directly — **done** (but no API route wrapper yet)
-- `AppointmentCard`, `AppointmentList`, `AppointmentInput`: files exist but are commented-out pseudocode — **not started** (only `AppointmentForm` is exported from the barrel)
-- `ExtractedDataReview.tsx`: empty file — **not started**
-- `/api/extract-appointment` route: **missing** (extraction currently has no HTTP entry point)
-- [src/app/appointments/new/page.tsx](src/app/appointments/new/page.tsx): imports only, no render — **not started**
-- [src/app/appointments/page.tsx](src/app/appointments/page.tsx): header + empty state only, "Add New" `onClick` commented out — **not started**
+### Appointments (complete)
+- `useAppointments` hook: full CRUD, `upcoming` and `past` computed lists
+- `AppointmentForm`: all fields (title, doctor, specialty, location, address, phone, date, time, reason, notes), validation, native `<datalist>` location autocomplete from past appointments
+- `AppointmentCard`: display + inline edit, parses YYYY-MM-DD without UTC shift
+- `AppointmentList`: upcoming / past sections, empty state, past section hidden when empty
+- `AppointmentInput`: wraps `ContentInput`. ICS → deterministic `parseIcsFile` + `icsEventToAppointment` (client-side). Text/email → POST `/api/extract-appointment`. Inline manual-entry escape and dismiss in the error banner.
+- `ExtractedDataReview`: wraps `AppointmentForm` with optional source label and low-confidence amber banner. Input-agnostic — same component for ICS-parsed and AI-extracted fields.
+- `/api/extract-appointment` route: thin HTTP wrapper around `extractAppointment()` with input validation and a 20k-char cap.
+- `appointments/new/page.tsx`: two-step state machine (input → review → save).
+- `appointments/page.tsx`: renders `AppointmentList` from the hook, "+ Add New" links to `/appointments/new`.
 
-### Documents (not started)
-- Page stub exists at `/documents`. Planned as a hub for lab results, referral letters, and other medical documents.
+### Documents (deferred to post-MVP)
+- Page stub exists at `/documents` but is intentionally not built for MVP. Vision: redirect the "paste medical documents into general-purpose chat" behavior into a place with proper guardrails, eventually with skills authored by medical professionals. See [ROADMAP.md](ROADMAP.md).
 
 ---
 
@@ -214,36 +220,35 @@ There is no backend database. All data lives in the user's browser. This is inte
 
 ## AI Provider Configuration
 
-The app is **designed to be provider-agnostic**. All call-sites import a stable interface from [src/lib/ai/index.ts](src/lib/ai/index.ts) — they never reach into a specific provider's wrapper directly. Today only one provider is implemented (Azure AI Foundry); Anthropic Claude is planned next so local development and testing can switch between them via an env var. See the "AI Provider Abstraction" item in [documentation/tech-debt.md](documentation/tech-debt.md) for the planned refactor.
+The app is provider-agnostic. Call sites import a stable interface from [src/lib/ai/index.ts](src/lib/ai/index.ts) — they never reach into a specific provider's wrapper directly. The active provider is selected at runtime by the `AI_PROVIDER` env var (default `azure-foundry`).
 
 ### Stable interface (use these everywhere)
 
 Exported from [src/lib/ai/index.ts](src/lib/ai/index.ts):
 
-- `simpleChat(systemPrompt, userMessage, options?)` — one-shot completion, returns the response string. **Prefer this for new code.**
-- `safeChatWithAI(...)` — `simpleChat` wrapped with the safety guardrails (see Safety section)
-- `chatWithAzureFoundry(messages, config, options?)` — currently provider-specific; will be renamed/abstracted as part of the provider refactor. Avoid using directly in new code.
+- `simpleChat(systemPrompt, userMessage, options?)` — one-shot completion, returns the response string. **Prefer this for new code.** Always pass `options.routeKey` so the mock provider can route deterministically.
+- `safeChatWithAI(...)` — `chatWithProvider` wrapped with the safety guardrails (see Safety section)
+- `chatWithProvider(messages, options?)` — multi-message conversations against the active provider
+- `getActiveProvider()` — returns the currently selected `ChatProvider`
 
-### Current provider: Azure AI Foundry
+The shared types (`ChatMessage`, `ChatOptions`, `ChatResponse`, `ChatProvider`) live in [src/lib/ai/provider.ts](src/lib/ai/provider.ts).
 
-Implementation lives in [src/lib/ai/azure-foundry.ts](src/lib/ai/azure-foundry.ts) — wraps the OpenAI-compatible chat completions endpoint via `fetch`. No vendor SDK.
+### routeKey convention
 
-Required environment variables (in `.env.local`, never exposed to the browser):
+Every non-trivial call site passes a stable `routeKey` in `ChatOptions` (e.g. `"bill-analysis"`, `"appointment-extraction"`, `"contact-script"`, `"doctor-questions"`, `"scam-check"`, `"health-check"`, `"safe-chat"`). Live providers ignore it; the mock provider uses it to load `src/data/fixtures/ai-responses/<routeKey>.txt`. Never dispatch mock responses by sniffing the system prompt — prompts evolve, route keys don't.
 
-- `AZURE_AI_FOUNDRY_ENDPOINT` — full endpoint URL for the deployed model
-- `AZURE_AI_FOUNDRY_API_KEY` — API key
-- `AZURE_AI_FOUNDRY_API_VERSION` — optional; appended as `?api-version=` if the endpoint doesn't already include one
-- `AZURE_AI_FOUNDRY_MODEL` — optional; defaults to `gpt-4.1-mini`
+### Providers
 
-### Planned provider: Anthropic Claude
+| Name | File | Required env vars | Optional env vars |
+|---|---|---|---|
+| `azure-foundry` (default) | [src/lib/ai/providers/azure-foundry.ts](src/lib/ai/providers/azure-foundry.ts) | `AZURE_AI_FOUNDRY_ENDPOINT`, `AZURE_AI_FOUNDRY_API_KEY` | `AZURE_AI_FOUNDRY_API_VERSION`, `AZURE_AI_FOUNDRY_MODEL` (default `gpt-4.1-mini`) |
+| `anthropic` | [src/lib/ai/providers/anthropic.ts](src/lib/ai/providers/anthropic.ts) | `ANTHROPIC_API_KEY` | `ANTHROPIC_MODEL` (default `claude-3-5-haiku-latest`) |
+| `openai-compatible` | [src/lib/ai/providers/openai-compatible.ts](src/lib/ai/providers/openai-compatible.ts) | `OPENAI_COMPATIBLE_BASE_URL`, `OPENAI_COMPATIBLE_API_KEY`, `OPENAI_COMPATIBLE_MODEL` | — |
+| `mock` | [src/lib/ai/providers/mock.ts](src/lib/ai/providers/mock.ts) | — | reads fixtures from `src/data/fixtures/ai-responses/<routeKey>.txt` |
 
-Not yet implemented. When added, the planned shape is:
+The `openai-compatible` provider works with anything speaking the OpenAI chat-completions wire format: OpenAI itself (`https://api.openai.com/v1`), OpenRouter, Groq, Together, Fireworks, Ollama (`http://localhost:11434/v1`), LM Studio (`http://localhost:1234/v1`), vLLM, llama.cpp server, etc. For local runners that ignore auth, pass any non-empty string as the API key. Azure AI Foundry has its own provider because of its deployment-specific URL + `?api-version=` shape.
 
-- A sibling file `src/lib/ai/anthropic.ts` exporting the same `simpleChat` signature
-- A selector in [src/lib/ai/index.ts](src/lib/ai/index.ts) driven by `AI_PROVIDER=anthropic|azure-foundry`
-- Anthropic-specific env vars (`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`) loaded only when that provider is selected
-
-Until the refactor lands, `simpleChat` is the safe boundary — swapping providers will not require changes to API routes, `extractAppointment`, `bill-analysis.ts`, or any UI code.
+Env vars are validated lazily on first call. Switching providers requires no code changes — set `AI_PROVIDER` in `.env.local` and restart.
 
 ---
 
@@ -257,22 +262,14 @@ All AI calls are server-side (Next.js API routes). The configured provider's API
 | [/api/contact-script](src/app/api/contact-script/route.ts) | POST | `{ text, analysis? }` | Plain text script |
 | [/api/doctor-questions](src/app/api/doctor-questions/route.ts) | POST | `{ text, analysis? }` | Plain text questions |
 | [/api/scam-check](src/app/api/scam-check/route.ts) | POST | `{ text, analysis? }` | Plain text assessment |
+| [/api/extract-appointment](src/app/api/extract-appointment/route.ts) | POST | `{ text: string }` (max 20k chars) | `AppointmentFields` JSON |
 | [/api](src/app/api/route.ts) | GET | — | Health-check; pings the AI provider and returns success/error |
-| `/api/extract-appointment` | POST | `{ text: string }` | `AppointmentFields` JSON (**not yet built**) |
 
 ---
 
 ## Active Work Item
 
-The appointments feature needs these pieces to be usable:
-
-1. **`/api/extract-appointment` route** — POST handler that calls `extractAppointment()` from [src/lib/content/extraction.ts](src/lib/content/extraction.ts) and returns the result as JSON. Pattern to follow: [src/app/api/analyze-bill/route.ts](src/app/api/analyze-bill/route.ts).
-
-2. **`ExtractedDataReview.tsx`** — Component that receives `AppointmentFields` (from ICS parse or AI extraction) and renders a pre-filled `AppointmentForm` for the user to confirm/edit before saving. On confirm, calls `useAppointments().addAppointment()`.
-
-3. **[src/app/appointments/new/page.tsx](src/app/appointments/new/page.tsx)** — Assemble the add-appointment flow: `ContentInput` → detect type → parse/extract → `ExtractedDataReview` (or go straight to blank `AppointmentForm` if user skips). Wire save to navigate back to `/appointments`.
-
-4. **[src/app/appointments/page.tsx](src/app/appointments/page.tsx)** — Wire the "Add New" button to route to `/appointments/new`. Render `AppointmentList` (which already exists) with the hook data.
+With the AI provider abstraction landed, the next priorities track the MVP roadmap: navigation consolidation (5-item top nav + Home dashboard), Tally-based feedback form, first-run onboarding, and user documentation (FAQ + BYO-key setup guide). See [ROADMAP.md](ROADMAP.md).
 
 ---
 

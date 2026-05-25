@@ -1,64 +1,87 @@
-/* List of appointments. Renders AppointmentCard for each appointment.
-Possible sortable and/or filterable. */
+'use client';
 
-/* pseudocode and commments
-import React from 'react';
+/**
+ * Renders the two-section appointment list: Upcoming and Past.
+ *
+ * The parent owns the appointment data (typically via `useAppointments`)
+ * and passes in the pre-sorted `upcoming` / `past` arrays plus the full
+ * `appointments` list. The full list is forwarded to each card so the
+ * embedded edit form can offer past-location autocomplete.
+ */
+
 import AppointmentCard from './AppointmentCard';
+import { EmptyState } from '@/components/shared/EmptyState';
+import type { Appointment, AppointmentFields } from '@/types';
 
 interface AppointmentListProps {
-  appointments: Appointment[];
-    onEdit: (appointment: Appointment) => void;
-    onDelete: (appointment: Appointment) => void;
-    fontSize?: FontSize;
+	upcoming: Appointment[];
+	past: Appointment[];
+	/** Full appointment list — forwarded to each card's edit form for autocomplete. */
+	appointments: Appointment[];
+	onUpdate?: (id: number, fields: AppointmentFields) => void;
+	onDelete?: (id: number) => void;
 }
 
-// appointments passed as props, or fetched via hook here? Will look at other components.
+export default function AppointmentList({
+	upcoming,
+	past,
+	appointments,
+	onUpdate,
+	onDelete,
+}: AppointmentListProps) {
+	if (upcoming.length === 0 && past.length === 0) {
+		return (
+			<EmptyState
+				icon="📅"
+				title="No appointments yet"
+				description="Tap “Add New” to record your first appointment."
+			/>
+		);
+	}
 
-// TODO - extract empty state into shared component and pass props for icon, title, description.
-// ============================================
-// Empty State
-// ============================================
+	return (
+		<div className="space-y-8">
+			<section className="space-y-3">
+				<h2 className="text-xl font-semibold text-slate-900">
+					Upcoming
+				</h2>
+				{upcoming.length === 0 ? (
+					<p className="text-sm text-slate-500">
+						No upcoming appointments scheduled.
+					</p>
+				) : (
+					<div className="space-y-3">
+						{upcoming.map((apt) => (
+							<AppointmentCard
+								key={apt.id}
+								appointment={apt}
+								appointments={appointments}
+								onUpdate={onUpdate}
+								onDelete={onDelete}
+							/>
+						))}
+					</div>
+				)}
+			</section>
 
-function EmptyState() {
-  return (
-   <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">Appointments</h1>
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-4xl">
-          📅
-        </div>
-        <h2 className="text-lg font-semibold text-slate-900">Coming Soon</h2>
-        <p className="mt-2 text-slate-600">
-          Tap the Add button to add your first appointment and build your schedule.
-        </p>
-      </div>
-    </div>
-  );
+			{past.length > 0 && (
+				<section className="space-y-3">
+					<h2 className="text-xl font-semibold text-slate-900">
+						Past
+					</h2>
+					<div className="space-y-3">
+						{past.map((apt) => (
+							<AppointmentCard
+								key={apt.id}
+								appointment={apt}
+								appointments={appointments}
+								onUpdate={onUpdate}
+								onDelete={onDelete}
+							/>
+						))}
+					</div>
+				</section>
+			)}
+		</div>
+	);
 }
-
-export default function AppointmentList({ appointments, onEdit, onDelete, fontSize = "normal" }: AppointmentListProps) {
-if (!appointments.length) {
-    return <EmptyState />;
-}
-
-// map appointment list and return card component
-const appointmentsList = appointments.map(appointment => (
-  <AppointmentCard key={appointment.id} appointment={appointment} onEdit={onEdit} onDelete={onDelete} fontSize={fontSize} />
-));
-
-return (
-<section>
-  <div className="section-header">
-    <h2 className="font-semibold text-slate-900 text-2xl">Appointments</h2>
-  </div>
-  <div className="appointment-filters">
-    // Possible filter/sort controls here
-  </div>
-  <div className="appointment-list">
-    {appointmentsList} // render cards
-  </div>
-  </section>
-);
-}
-
-*/

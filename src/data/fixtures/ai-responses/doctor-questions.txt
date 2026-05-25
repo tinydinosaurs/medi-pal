@@ -1,0 +1,8 @@
+QUESTIONS FOR YOUR DOCTOR (mock)
+
+1. Can you confirm which services were billed under this visit?
+2. Were any of the charges for procedures that were not performed?
+3. Is there a generic or lower-cost alternative for any of the services listed?
+4. Can you help me understand what each CPT code on this bill refers to?
+
+— This is a canned response from the mock AI provider. Set AI_PROVIDER=azure-foundry or anthropic to use a live provider.

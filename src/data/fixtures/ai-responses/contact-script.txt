@@ -1,0 +1,5 @@
+PHONE SCRIPT (mock)
+
+Hello, my name is [your name]. I'm calling about a bill dated [date] for account number [account number]. I have some questions about the charges and would like to speak with someone in billing. Thank you.
+
+— This is a canned response from the mock AI provider. Set AI_PROVIDER=azure-foundry or anthropic to use a live provider.

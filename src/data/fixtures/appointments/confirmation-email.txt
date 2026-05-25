@@ -1,0 +1,22 @@
+From: scheduling@riversidefamilypractice.example
+To: jane.smith@example.com
+Subject: Appointment Confirmation - Dr. Patel
+Date: Mon, 1 Jun 2026 09:14:22 -0700
+
+Hi Jane,
+
+This is a confirmation for your upcoming visit with Dr. Anika Patel
+(Primary Care) on Wednesday, June 17, 2026 at 10:30 AM.
+
+Location:
+  Riverside Family Practice
+  456 Oak Street, Suite 210
+  Springfield, IL
+
+Reason for visit: Annual physical and bloodwork follow-up.
+
+Please arrive 15 minutes early to update your insurance information.
+If you need to reschedule, call us at (555) 234-5678.
+
+Thank you,
+Riverside Family Practice

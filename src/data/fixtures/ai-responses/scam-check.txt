@@ -1,0 +1,9 @@
+SCAM CHECK (mock)
+
+This bill does not show obvious scam indicators. Common red flags to watch for in real bills:
+  - Unfamiliar vendor names with no clear provider association
+  - Pressure to pay immediately via gift card, wire transfer, or cryptocurrency
+  - Threats of immediate collections or legal action without prior notice
+  - Round-dollar totals with no itemization
+
+— This is a canned response from the mock AI provider. Set AI_PROVIDER=azure-foundry or anthropic to use a live provider.

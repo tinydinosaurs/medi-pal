@@ -1,13 +1,17 @@
 import { useCallback } from "react";
 import { useStorageState } from "@/lib/useStorageState";
+import { MOCK_MEDICATIONS, SEED_MOCKS_ENABLED } from "@/data/mocks";
 import type { Medication } from "@/types";
 
 const STORAGE_KEY = "caretaker-medications";
+const INITIAL_MEDICATIONS: Medication[] = SEED_MOCKS_ENABLED
+  ? MOCK_MEDICATIONS
+  : [];
 
 export function useMedications() {
   const [medications, setMedications] = useStorageState<Medication[]>(
     STORAGE_KEY,
-    []
+    INITIAL_MEDICATIONS
   );
 
   const addMedication = useCallback((data: Omit<Medication, "id">) => {

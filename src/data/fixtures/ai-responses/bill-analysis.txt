@@ -1,0 +1,19 @@
+{
+  "summary": "This is a mock bill analysis response. Set AI_PROVIDER=mock to use canned fixtures instead of a live AI provider.",
+  "potentialIssues": [
+    "[HIGH] Mock issue: duplicate line item detected for office visit",
+    "[MEDIUM] Mock issue: total does not match sum of line items",
+    "[LOW] Mock issue: vendor name is abbreviated"
+  ],
+  "vendorName": "Mock Medical Center",
+  "statementDate": "2025-10-15",
+  "dueDate": "2025-11-15",
+  "totalAmount": "$342.18",
+  "minimumDue": "$50.00",
+  "billingPeriod": "2025-09-01 to 2025-09-30",
+  "insuranceCoverage": "$1,247.82 covered by insurance",
+  "nextSteps": [
+    "Call the billing department to ask about the duplicate line item",
+    "Verify the total matches the itemized list"
+  ]
+}

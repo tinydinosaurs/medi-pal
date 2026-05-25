@@ -42,9 +42,11 @@ Medication section tech debt
 
 Future direction for skills, MCP, and agent capabilities
 
-### AI Provider Abstraction (near-term)
+### AI Provider Abstraction ✅ (landed)
 
-> **Status:** Currently blocking local development. Azure AI Foundry credentials may no longer be active; until an Anthropic provider is wired in, no AI feature (bill analysis, contact scripts, doctor questions, scam check, appointment extraction) can be exercised locally.
+> **Status:** Done. The app supports Azure AI Foundry, Anthropic Claude, and a fixture-based Mock provider, selected at runtime by the `AI_PROVIDER` env var (default `azure-foundry`). All call sites import the neutral `simpleChat` / `chatWithProvider` from [src/lib/ai/](../src/lib/ai/) and pass a stable `routeKey` for mock dispatch. See [AGENTS.md](../AGENTS.md#ai-provider-configuration) for the current contract.
+
+Original refactor plan retained below for historical reference.
 
 The app is **designed** to be LLM-provider-agnostic but is **currently locked to Azure AI Foundry** at the implementation layer. Call-sites already go through `simpleChat(systemPrompt, userMessage, options)` from `src/lib/ai`, so the abstraction seam exists — but the function lives in `src/lib/ai/azure-foundry.ts` and unconditionally calls Azure.
 
@@ -81,6 +83,38 @@ ANTHROPIC_MODEL=claude-sonnet-4-5
 - Switching providers requires only an env-var change + server restart, never a code change
 - Missing/malformed provider config produces a clear error at startup or first call, not a cryptic 500
 - The safety layer in `src/lib/ai/safety/` continues to wrap calls regardless of provider
+
+### Mock AI Provider for Local Dev & Tests (add alongside Anthropic)
+
+Add a third provider, `mock`, that returns canned fixture responses instead of calling a real model. Land this in the same refactor that introduces Anthropic — the abstraction work is identical, and the mock provider doubles as the test seam for Vitest later.
+
+**Motivation:**
+
+- Avoid burning tokens during manual UI testing or while iterating on UX.
+- Make the app fully exercisable offline / without any provider credentials.
+- Give the future Vitest suite a deterministic AI response source — no network, no flakiness, no rate limits.
+- Demoable on any machine without secrets distribution.
+
+**Shape:**
+
+```bash
+AI_PROVIDER=mock   # bypasses Azure / Anthropic entirely
+```
+
+When selected, `simpleChat` dispatches by `systemPrompt` (or a small route key passed through `ChatOptions`) to a fixture response:
+
+- Appointment extraction → returns `ExtractedAppointment` JSON matching the rich-email fixture
+- Bill analysis → returns a `BillAnalysis` JSON with both clean and issue-flagged variants
+- Contact script / doctor questions / scam check → returns a short canned string
+
+Fixtures live next to the existing test data, e.g. `src/data/fixtures/ai-responses/`. Each fixture is typed against the expected response shape so it can't drift from the real provider contract.
+
+**Acceptance criteria:**
+
+- `AI_PROVIDER=mock` makes every API route work offline with no real LLM call
+- Mock responses are deterministic (same input → same output)
+- Switching back to `azure-foundry` or `anthropic` is an env-var change only
+- The safety layer still wraps mock responses (so we can test the guardrails too)
 
 ### Current State (broader AI strategy)
 

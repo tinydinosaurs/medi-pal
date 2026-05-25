@@ -1,14 +1,16 @@
 import { useCallback } from "react";
 import { useStorageState } from "@/lib/useStorageState";
 import { storage } from "@/lib/storage";
+import { MOCK_DOSE_LOG, SEED_MOCKS_ENABLED } from "@/data/mocks";
 import type { DoseRecord } from "@/types";
 
 const STORAGE_KEY = "caretaker-dose-log";
+const INITIAL_DOSE_LOG: DoseRecord[] = SEED_MOCKS_ENABLED ? MOCK_DOSE_LOG : [];
 
 export function useDoseLog() {
   const [doseLog, setDoseLog] = useStorageState<DoseRecord[]>(
     STORAGE_KEY,
-    []
+    INITIAL_DOSE_LOG
   );
 
   const recordDose = useCallback(

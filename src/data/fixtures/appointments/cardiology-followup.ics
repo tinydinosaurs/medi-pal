@@ -1,0 +1,16 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//MediPal Test Fixtures//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:test-cardiology-followup-2026-06-15@medipal-fixtures
+DTSTAMP:20260520T120000Z
+DTSTART:20260615T180000Z
+DTEND:20260615T184500Z
+SUMMARY:Cardiology Follow-up with Dr. Chen
+LOCATION:Memorial Hospital\, 123 Medical Center Dr\, Suite 400
+DESCRIPTION:Follow-up appointment to review blood pressure medication. Bring recent home BP readings. Arrive 15 minutes early for vitals.
+ORGANIZER:mailto:scheduling@memorialhospital.example
+END:VEVENT
+END:VCALENDAR
