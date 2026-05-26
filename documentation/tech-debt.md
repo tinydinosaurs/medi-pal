@@ -10,6 +10,7 @@ Debt related to parts of the app not specific to a particular area
 - Push notifications / reminders (requires service worker or native wrapper)
 - Offline support / PWA enhancements
 - Refactor for mobile device support
+- **Alert dismissal UX** — Dashboard Needs Attention alerts currently have no dismissal mechanism; they clear only by time (48h window) or by resolving the underlying condition. Consider: (1) one-at-a-time dismissal only (never dismiss all at once), (2) time-based dismissal (alert reappears after N hours) to prevent snooze-and-forget, (3) yellow-flag items (low supply amber) vs. red-flag items (out of supply red) have different dismissal policies. Never allow dismissal of critical/red alerts.
 
 ### No Automated Test Coverage
 

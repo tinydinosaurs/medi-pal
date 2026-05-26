@@ -11,7 +11,7 @@ export const MOCK_MEDICATIONS: Medication[] = [
     instructions: "Take with water",
     purpose: "Blood pressure",
     doctor: "Dr. Chen",
-    pillsRemaining: 12,
+    pillsRemaining: 5,
     refillable: true,
   },
   {

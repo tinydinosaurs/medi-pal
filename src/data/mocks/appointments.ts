@@ -44,7 +44,7 @@ export function buildMockAppointments(
       location: "Memorial Hospital",
       address: "123 Medical Center Dr, Suite 400",
       phone: "(555) 123-4567",
-      date: toDateKey(21), // ~3 weeks out
+      date: toDateKey(1), // Tomorrow
       time: "14:00",
       reason: "Follow-up on blood pressure medication",
       notes: "Bring recent blood pressure readings",

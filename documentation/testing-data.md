@@ -194,3 +194,27 @@ Mail to: PO Box 99182, Processingville, DE 19999
 ```
 
 ```
+
+## Appointments
+
+All fixtures live in [`src/data/fixtures/appointments/`](../src/data/fixtures/appointments/).
+
+**How to use them:**
+
+- **Drag & drop:** drop the file directly onto the appointment input on `/appointments/new`.
+- **Paste:** copy the contents to your clipboard, then paste into the textarea. On macOS: `cat src/data/fixtures/appointments/<file> | pbcopy`.
+- **Inspect:** `cat src/data/fixtures/appointments/<file>` to view raw contents.
+
+### Calendar (.ics) files
+
+- `cardiology-followup.ics` — single VEVENT with location, description, and organizer. Tests the happy path of `parseIcsFile` + `icsEventToAppointment`. Parsed deterministically client-side; no AI call.
+- `all-day-screening.ics` — all-day event (no time component). Tests that the `isDate` branch leaves `time` as `null`.
+
+### Email / text fixtures (.txt)
+
+These exercise the AI extraction path via `/api/extract-appointment`.
+
+- `confirmation-email.txt` — rich appointment confirmation with full headers and structured body. High-confidence target: should extract date, time, doctor, specialty, location, address, phone, and reason.
+- `sms-reminder.txt` — typical SMS-style reminder, single line with abbreviations. Medium-confidence target: should pull date, time, doctor, specialty, location, and phone.
+- `vague-sms.txt` — one-line message designed to make the extractor hedge ("next thursday" is ambiguous, no year, no full doctor name). Should trigger the amber low-confidence banner on the review screen.
+
